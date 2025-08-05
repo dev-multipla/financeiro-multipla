@@ -1,0 +1,18 @@
+# Ambiente virtual
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Banco de dados / dumps
+*.sqlite3
+*.sql
+
+# Arquivos de mídia
+media/
+
+# Logs, config de IDE, ambiente
+*.log
+.env
+

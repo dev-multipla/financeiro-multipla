@@ -1,0 +1,36 @@
+# contas_pagar/migrations/0003_populate_filial.py
+
+from django.db import migrations
+
+def set_default_filial(apps, schema_editor):
+    Filial = apps.get_model('empresas', 'Filial')
+    default_filial = Filial.objects.first()
+    if not default_filial:
+        return
+
+    # Atualiza ContaAPagar
+    ContaAPagar = apps.get_model('contas_pagar', 'ContaAPagar')
+    ContaAPagar.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+    # Atualiza ContaAReceber
+    ContaAReceber = apps.get_model('contas_pagar', 'ContaAReceber')
+    ContaAReceber.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+    # Atualiza ContaPagarAvulso
+    ContaPagarAvulso = apps.get_model('contas_pagar', 'ContaPagarAvulso')
+    ContaPagarAvulso.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+    # Atualiza ContaReceberAvulso
+    ContaReceberAvulso = apps.get_model('contas_pagar', 'ContaReceberAvulso')
+    ContaReceberAvulso.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('contas_pagar', '0002_contaapagar_filial_contaareceber_filial_and_more'),
+        ('empresas', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RunPython(set_default_filial, migrations.RunPython.noop),
+    ]

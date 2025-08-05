@@ -1,0 +1,8 @@
+pandas
+python-dateutil
+psycopg2-binary
+django_rest_framework
+django-cors-headers
+djangorestframework-simplejwt
+django_extensions
+django_filters

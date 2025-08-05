@@ -1,0 +1,19 @@
+from django.db import migrations
+
+def set_default_filial(apps, schema_editor):
+    Filial = apps.get_model('empresas', 'Filial')
+    default_filial = Filial.objects.first()
+    if not default_filial:
+        return
+
+    FormaPagamento = apps.get_model('pagamentos', 'FormaPagamento')
+    FormaPagamento.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('pagamentos', '0002_formapagamento_filial'),  # agora depende da migração que adicionou o campo
+        ('empresas', '0001_initial'),
+    ]
+    operations = [
+        migrations.RunPython(set_default_filial, migrations.RunPython.noop),
+    ]

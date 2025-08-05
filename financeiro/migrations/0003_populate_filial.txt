@@ -1,0 +1,25 @@
+from django.db import migrations
+
+def set_default_filial(apps, schema_editor):
+    Filial = apps.get_model('empresas', 'Filial')
+    default_filial = Filial.objects.first()
+    if not default_filial:
+        return
+
+    ContaFinanceira = apps.get_model('financeiro', 'ContaFinanceira')
+    ContaFinanceira.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+    CentroCusto = apps.get_model('financeiro', 'CentroCusto')
+    CentroCusto.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('financeiro', '0001_initial'),
+        ('financeiro', '0002_centrocusto_filial_contafinanceira_filial'),  # ajuste para sua migração anterior
+        ('empresas', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RunPython(set_default_filial, migrations.RunPython.noop),
+    ]

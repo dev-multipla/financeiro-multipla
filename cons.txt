@@ -1,0 +1,26 @@
+sudo docker restart 5e42c14c98c9  //iniciar o psql12
+
+docker pull postgres:12
+
+sudo docker exec -it multipla psql -U postgres
+
+//abrir banco
+psql -h localhost -p 5433 -U postgres
+
+docker run --name meu_postgres -e POSTGRES_PASSWORD=minha_senha -d postgres:12
+psql -h localhost -p 5433 -U postgres -d erp_multipla
+
+CREATE DATABASE meu_banco;
+
+CREATE USER meu_usuario WITH PASSWORD 'minha_senha';
+ALTER USER meu_usuario WITH SUPERUSER;
+
+
+
+
+
+sudo docker start 64677eabdc59
+64677eabdc59
+(venv) kailon-bernardo@vostro-15-3515:~/Documentos/multipla_teste$ sudo docker exec -it postgres12 psql -U postgres
+
+/dt #listar tabelas

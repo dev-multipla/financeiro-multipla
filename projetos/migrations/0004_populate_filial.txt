@@ -1,0 +1,25 @@
+from django.db import migrations
+
+def popular_filial_em_projetos(apps, schema_editor):
+    Filial = apps.get_model('empresas', 'Filial')
+    Projeto = apps.get_model('projetos', 'Projeto')
+
+    filiais = list(Filial.objects.all())
+    if not filiais:
+        # Sem filiais, ignora
+        return
+
+    default_filial = filiais[0]
+    Projeto.objects.filter(filial__isnull=True).update(filial=default_filial)
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('projetos', '0003_projeto_filial'),  # Substitua pelo nome da última migração com o campo
+    ]
+
+    operations = [
+    migrations.RunPython(popular_filial_em_projetos, reverse_code=migrations.RunPython.noop),
+]
+
