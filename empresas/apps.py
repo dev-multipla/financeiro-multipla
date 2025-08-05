@@ -19,13 +19,13 @@ class EmpresasConfig(AppConfig):
             return
 
         # Para cada empresa, registra o alias tenant_{id}
-    """  for empresa in Empresa.objects.all():
+        for empresa in Empresa.objects.all():
             alias = f"tenant_{empresa.id}"
             dbname = f"multipla_financeiro_tenant_{empresa.id}"
             if alias not in settings.DATABASES:
                 cfg = default_cfg.copy()
                 cfg['NAME'] = dbname
-                settings.DATABASES[alias] = cfg"""
+                settings.DATABASES[alias] = cfg
 
         # Fecha todas as conexões para o Django recarregar os novos aliases
-       # connections.close_all()
+        connections.close_all()
