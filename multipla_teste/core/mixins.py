@@ -30,6 +30,9 @@ class CompanyScopedMixin:
             self.request.headers.get('X-Company-Id', '') or 
             self.request.headers.get('X-Company-ID', '')
         ).strip()
+        
+        #Sempre usamos X-Company-Id (minúsculo no CORS_ALLOW_HEADERS é o mesmo header)
+        raw = self.request.headers.get('X-Company-Id', '').strip()
 
         if not raw or raw.lower() == 'all':
             return None
@@ -57,6 +60,11 @@ class CompanyScopedMixin:
 
     def get_queryset(self):
         qs = super().get_queryset()
+        # Se o header X-Company-Id for 'all' e o usuário for staff, retorna todos os registros
+        raw = self.request.headers.get('X-Company-Id', '').strip().lower()
+        if raw == 'all' and self.request.user.is_staff:
+            return qs
+        # Caso contrário, filtra pelo tenant atual
         company_id = self.get_current_company_id()
         return qs.filter(empresa_id=company_id)
 

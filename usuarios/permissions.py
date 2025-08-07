@@ -16,7 +16,7 @@ class IsEmpresaAdminOrFinanceiro(permissions.BasePermission):
             return False
 
         # Descobrimos a empresa atual (via mixin ou header)
-        company_id = request.headers.get('X-Company-ID')
+        company_id = request.headers.get('X-Company-Id')
         if not company_id or company_id.lower() == 'all':
             # usa a empresa_padrao
             empresa = perfil.empresa_padrao
@@ -50,7 +50,7 @@ class IsEmpresaLeitura(permissions.BasePermission):
             except PerfilUsuario.DoesNotExist:
                 return False
 
-            company_id = request.headers.get('X-Company-ID')
+            company_id = request.headers.get('X-Company-Id')
             if not company_id or company_id.lower() == 'all':
                 empresa = perfil.empresa_padrao
             else:

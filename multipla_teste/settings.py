@@ -38,6 +38,8 @@ ALLOWED_HOSTS = [
     'testserver',
     'financeiro.multipla.tec.br',
     '5.78.120.45',
+    "127.0.1", 
+    "0.0.0.0"
 ]
 
 
@@ -139,6 +141,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # Substitua pela porta
     'http://192.168.0.71:3000',
     'https://financeiro.multipla.tec.br',
+    'http://localhost:5173',
 ]
 
 # Permite o header X-Filial-ID na preflight response

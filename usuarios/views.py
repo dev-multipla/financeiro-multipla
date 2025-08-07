@@ -127,7 +127,7 @@ class MeView(RetrieveAPIView):
         # Adiciona informações extras sobre tenant atual
         try:
             perfil = request.user.perfilusuario
-            current_tenant_id = request.headers.get('X-Company-ID')
+            current_tenant_id = request.headers.get('X-Company-Id')
             
             extra_info = {
                 "tenant_atual": None,
@@ -197,16 +197,12 @@ class MinhasEmpresasViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        try:
-            perfil = self.request.user.perfilusuario
-            # Retorna empresas acessíveis + empresa padrão (sem duplicatas)
-            acessiveis = perfil.empresas_acessiveis.all()
-            if perfil.empresa_padrao:
-                padrao = Empresa.objects.filter(id=perfil.empresa_padrao_id)
-                return acessiveis.union(padrao).order_by('nome')
-            return acessiveis.order_by('nome')
-        except PerfilUsuario.DoesNotExist:
-            raise PermissionDenied("Usuário sem perfil cadastrado")
+        perfil = PerfilUsuario.objects.prefetch_related('empresas_acessiveis').get(user=self.request.user)
+        acessiveis = perfil.empresas_acessiveis.all()
+        if perfil.empresa_padrao:
+            padrao = Empresa.objects.filter(id=perfil.empresa_padrao_id)
+            return acessiveis.union(padrao).order_by('nome')
+        return acessiveis.order_by('nome')
 
     @action(detail=False, methods=['get'])
     def atual(self, request):
@@ -214,40 +210,41 @@ class MinhasEmpresasViewSet(viewsets.ReadOnlyModelViewSet):
         GET /api/minhas-empresas/atual/ → dados da empresa atualmente selecionada
         """
         try:
-            perfil = request.user.perfilusuario
-            company_id_header = request.headers.get('X-Company-ID', '').strip()
-            
-            if company_id_header and company_id_header.lower() != 'all':
-                try:
-                    company_id = int(company_id_header)
-                    # Verifica se tem acesso
-                    empresas_acessiveis = set(perfil.empresas_acessiveis.values_list('id', flat=True))
-                    if perfil.empresa_padrao:
-                        empresas_acessiveis.add(perfil.empresa_padrao.id)
-                    
-                    if company_id in empresas_acessiveis:
-                        empresa = Empresa.objects.get(id=company_id)
-                    else:
-                        empresa = perfil.empresa_padrao
-                except (ValueError, Empresa.DoesNotExist):
-                    empresa = perfil.empresa_padrao
-            else:
-                empresa = perfil.empresa_padrao
-            
-            if not empresa:
-                return Response(
-                    {"detail": "Nenhuma empresa padrão configurada"}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            serializer = self.get_serializer(empresa)
-            return Response(serializer.data)
-            
+            # Carrega perfil e já traz empresa_padrao e a lista de acessíveis
+            perfil = (
+                PerfilUsuario.objects
+                .select_related('empresa_padrao')
+                .prefetch_related('empresas_acessiveis')
+                .get(user=request.user)
+            )
         except PerfilUsuario.DoesNotExist:
             return Response(
-                {"detail": "Usuário sem perfil cadastrado"}, 
+                {"detail": "Usuário sem perfil cadastrado"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        header = request.headers.get('X-Company-Id', '').strip()
+        empresa = perfil.empresa_padrao  # default
+
+        if header and header.lower() != 'all':
+            try:
+                cid = int(header)
+                # lista todas as empresas que já estão em memória
+                empresas = list(perfil.empresas_acessiveis.all()) + [perfil.empresa_padrao]
+                # escolhe a que bate com o header, senão permanece a padrão
+                empresa = next((e for e in empresas if e.id == cid), perfil.empresa_padrao)
+            except ValueError:
+                # header não numérico: ignora e mantém padrão
+                pass
+
+        if not empresa:
+            return Response(
+                {"detail": "Nenhuma empresa padrão configurada"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(empresa)
+        return Response(serializer.data)
 
 
 class UserByEmpresaViewSet(viewsets.ReadOnlyModelViewSet):
